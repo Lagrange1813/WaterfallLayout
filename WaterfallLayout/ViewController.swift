@@ -20,7 +20,7 @@ class ViewController: UIViewController {
   
   var testModel: [TestItem] = {
     var result: [TestItem] = []
-    for i in 0 ... 3 {
+    for i in 0 ... 70 {
       result.append(TestItem(name: "Test \(i)"))
     }
     return result
@@ -119,9 +119,18 @@ extension ViewController {
         CGFloat(self.waterfallLayoutDelegate?.numberOfColumns() ?? 2)
       let defaultSize = CGSize(width: 100, height: 100)
       
-      var currentColumn: Int = 0
+      var targetColumn: Int = 0
       
       (0 ..< collectionView.numberOfItems(inSection: section)).forEach {
+        
+        targetColumn = 0
+        
+        for x in 0 ... 2 {
+          if (layouts[x] ?? 0) < (layouts[targetColumn] ?? 0) {
+            targetColumn = x
+          }
+        }
+        
         let indexPath = IndexPath(item: $0, section: section)
           
         let size = self.waterfallLayoutDelegate?.columnsSize(at: indexPath) ?? defaultSize
@@ -130,19 +139,16 @@ extension ViewController {
         let width = (environment.container.effectiveContentSize.width - (numberOfColumn - 1) * space) / numberOfColumn
         let height = width * aspect
           
-        let currentColumn = $0 % Int(numberOfColumn)
-          
-        let x = edgeInsets.leading + width * CGFloat(currentColumn) + space * CGFloat(currentColumn)
-        let y = layouts[currentColumn] ?? 0.0
+        let x = edgeInsets.leading + width * CGFloat(targetColumn) + space * CGFloat(targetColumn)
+        let y = layouts[targetColumn] ?? 0.0
         
-        print((y, edgeInsets.top))
         let spacing = y == edgeInsets.top ? 0 : space
           
         let frame = CGRect(x: x, y: y + spacing, width: width, height: height)
         let item = NSCollectionLayoutGroupCustomItem(frame: frame)
         items.append(item)
           
-        layouts[currentColumn] = frame.maxY
+        layouts[targetColumn] = y + spacing + height
       }
       return items
     }
@@ -160,7 +166,7 @@ extension ViewController: WaterfallLayoutDelegate {
   
   func columnsSize(at indexPath: IndexPath) -> CGSize {
     let width = 100
-    let height = Int.random(in: 10 ... 700)
+    let height = Int.random(in: 10 ... 300)
     return CGSize(width: width, height: height)
   }
   
