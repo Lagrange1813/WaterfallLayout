@@ -113,19 +113,26 @@ extension ViewController {
       [unowned self] environment -> [NSCollectionLayoutGroupCustomItem] in
         
       var items: [NSCollectionLayoutGroupCustomItem] = []
-      var layouts: [Int: CGFloat] = [0: 0, 1: 0, 2: 0]
+      
       let space: CGFloat = self.waterfallLayoutDelegate.flatMap { CGFloat($0.columnSpace()) } ?? 1.0
-      let numberOfColumn =
-        CGFloat(self.waterfallLayoutDelegate?.numberOfColumns() ?? 2)
+      let numberOfColumn = self.waterfallLayoutDelegate?.numberOfColumns() ?? 2
+      
+      var layouts: [Int: CGFloat] = {
+        var result: [Int: CGFloat] = [:]
+        for x in 0 ..< numberOfColumn {
+          result[x] = 0
+        }
+        return result
+      }()
+      
       let defaultSize = CGSize(width: 100, height: 100)
       
-      var targetColumn: Int = 0
+      var targetColumn = 0
       
       (0 ..< collectionView.numberOfItems(inSection: section)).forEach {
-        
         targetColumn = 0
         
-        for x in 0 ... 2 {
+        for x in 0 ..< numberOfColumn {
           if (layouts[x] ?? 0) < (layouts[targetColumn] ?? 0) {
             targetColumn = x
           }
@@ -136,7 +143,7 @@ extension ViewController {
         let size = self.waterfallLayoutDelegate?.columnsSize(at: indexPath) ?? defaultSize
         let aspect = CGFloat(size.height) / CGFloat(size.width)
           
-        let width = (environment.container.effectiveContentSize.width - (numberOfColumn - 1) * space) / numberOfColumn
+        let width = (environment.container.effectiveContentSize.width - CGFloat(numberOfColumn - 1) * space) / CGFloat(numberOfColumn)
         let height = width * aspect
           
         let x = edgeInsets.leading + width * CGFloat(targetColumn) + space * CGFloat(targetColumn)
@@ -161,7 +168,7 @@ extension ViewController {
 
 extension ViewController: WaterfallLayoutDelegate {
   func numberOfColumns() -> Int {
-    3
+    2
   }
   
   func columnsSize(at indexPath: IndexPath) -> CGSize {
